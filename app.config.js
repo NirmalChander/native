@@ -24,10 +24,10 @@ const IOS_BUILD_NUMBER = process.env.IOS_BUILD_NUMBER || '1';
 
 module.exports = {
   expo: {
-    name: 'Bulwark Mobile',
-    slug: 'bulwark-mobile',
+    name: 'Utservio Mail',
+    slug: 'utservio-mail',
     // mailto: lets Android/iOS offer the app for mail links in other apps.
-    scheme: ['bulwarkmobile', 'mailto'],
+    scheme: ['utserviomail', 'bulwarkmobile', 'mailto'],
     version: VERSION,
     orientation: 'portrait',
     icon: './assets/icon.png',
@@ -36,7 +36,7 @@ module.exports = {
     splash: {
       image: './assets/splash-icon.png',
       resizeMode: 'contain',
-      backgroundColor: '#ffffff',
+      backgroundColor: '#09090b',
       dark: {
         image: './assets/splash-icon.png',
         backgroundColor: '#09090b',
@@ -44,7 +44,7 @@ module.exports = {
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: 'org.bulwarkmail.mobile',
+      bundleIdentifier: 'com.utservio.mail',
       buildNumber: IOS_BUILD_NUMBER,
       config: {
         // The app only speaks HTTPS/TLS and uses platform crypto, which is
@@ -78,7 +78,7 @@ module.exports = {
         'expo-camera',
         {
           cameraPermission:
-            'Bulwark Mail uses the camera to scan sign-in QR codes shown in webmail.',
+            'Utservio Mail uses the camera to scan sign-in QR codes shown in webmail.',
           // QR scanning never records audio; leaving the mic entry in would be
           // an unexplained permission in App Review.
           microphonePermission: false,
@@ -88,7 +88,7 @@ module.exports = {
         'expo-image-picker',
         {
           photosPermission:
-            'Bulwark Mail needs access to your photos so you can attach them to emails and set contact photos.',
+            'Utservio Mail needs access to your photos so you can attach them to emails and set contact photos.',
           // Only launchImageLibraryAsync is used - no in-app capture.
           cameraPermission: false,
           microphonePermission: false,

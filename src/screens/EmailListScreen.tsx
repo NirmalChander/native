@@ -986,7 +986,7 @@ export default function EmailListScreen({ onEmailPress, onComposePress }: EmailL
             )}
           </Pressable>
           <Image
-            source={require('../../assets/logos/Bulwark Logo White.png')}
+            source={require('../../assets/logos/utservio-logo.png')}
             style={styles.headerLogo}
             resizeMode="contain"
           />

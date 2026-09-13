@@ -1,5 +1,5 @@
 {
-  "name": "bulwark-mobile",
+  "name": "utservio-mobile",
   "version": "0.1.62",
   "license": "AGPL-3.0-only",
   "main": "index.ts",
@@ -8,8 +8,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "TZ=UTC vitest run",
+    "test:watch": "TZ=UTC vitest",
     "typecheck": "tsc --noEmit",
     "bump": "node scripts/bump-version.mjs",
     "sync-locales": "node scripts/sync-locales.mjs",

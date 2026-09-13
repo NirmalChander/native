@@ -67,7 +67,7 @@ export default function ConfirmStep({
       <LoginNotice
         tone="info"
         title={t('login.mobile.provider_title', 'Your password stays with your provider')}
-        detail={t('login.mobile.provider_detail', "You'll type it on their page. Bulwark only stores a sign-in token, which you can revoke at any time.")}
+        detail={t('login.mobile.provider_detail', "You'll type it on their page. Utservio only stores a sign-in token, which you can revoke at any time.")}
       />
 
       {notice ? <LoginNotice title={notice.title} detail={notice.detail} /> : null}

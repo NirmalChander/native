@@ -116,7 +116,7 @@ export function buildMdnMessage(opts: MdnOptions): string {
     ? 'automatic-action/MDN-sent-automatically; displayed'
     : 'manual-action/MDN-sent-manually; displayed';
 
-  const reportingUa = opts.reportingUa || `${domain}; Bulwark Mobile`;
+  const reportingUa = opts.reportingUa || `${domain}; Utservio Mail`;
 
   const humanText = opts.humanText ?? [
     `This is a return receipt for the message you sent to ${finalRecipient}.`,

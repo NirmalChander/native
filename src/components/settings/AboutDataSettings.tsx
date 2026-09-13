@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Linking, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Linking, Alert, ActivityIndicator, Image } from 'react-native';
 import Constants from 'expo-constants';
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
@@ -114,7 +114,7 @@ export function AboutDataSettings() {
   const handleExport = async () => {
     try {
       const json = exportSettings();
-      const file = new File(Paths.cache, `bulwark-settings-${new Date().toISOString().slice(0, 10)}.json`);
+      const file = new File(Paths.cache, `utservio-settings-${new Date().toISOString().slice(0, 10)}.json`);
       file.write(json);
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(file.uri, {
@@ -178,10 +178,14 @@ export function AboutDataSettings() {
       <View style={styles.aboutBox}>
         <View style={styles.aboutRow}>
           <View style={styles.logo}>
-            <Text style={styles.logoText}>B</Text>
+            <Image
+              source={require('../../../assets/logos/utservio-logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.aboutTitle}>{t('settings.advanced.about.mobile_title', 'Bulwark Mobile')}</Text>
+            <Text style={styles.aboutTitle}>{t('settings.advanced.about.mobile_title', 'Utservio Mail')}</Text>
             <Text style={styles.aboutVersion}>
               v{APP_VERSION}{' '}
               <Text style={styles.aboutCommit}>({GIT_COMMIT})</Text>
@@ -421,10 +425,12 @@ function makeStyles(c: ThemePalette) {
     width: 48,
     height: 48,
     borderRadius: radius.md,
-    backgroundColor: c.primary,
+    backgroundColor: c.surface,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
+  logoImage: { width: 36, height: 36 },
   logoText: { fontSize: 24, fontWeight: '700', color: c.primaryForeground },
   aboutTitle: { ...typography.bodyMedium, color: c.text },
   aboutVersion: { ...typography.caption, color: c.mutedForeground, marginTop: 2 },

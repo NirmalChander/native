@@ -113,7 +113,7 @@ describe('shareAttachment (preview)', () => {
     await shareAttachment('blob-2', 'weird.xyz', 'application/x-weird');
 
     // file:// — expo-sharing rejects content:// URLs outright.
-    expect(Sharing.shareAsync).toHaveBeenCalledWith('file:///cache/bulwark-exports/weird.xyz', {
+    expect(Sharing.shareAsync).toHaveBeenCalledWith('file:///cache/utservio-exports/weird.xyz', {
       mimeType: 'application/x-weird',
       dialogTitle: 'weird.xyz',
     });
@@ -159,7 +159,7 @@ describe('shareAttachment (preview)', () => {
     await shareAttachment('blob-4', 'photo.jpg', 'image/jpeg');
 
     expect(IntentLauncher.startActivityAsync).not.toHaveBeenCalled();
-    expect(Sharing.shareAsync).toHaveBeenCalledWith('file:///cache/bulwark-exports/photo.jpg', {
+    expect(Sharing.shareAsync).toHaveBeenCalledWith('file:///cache/utservio-exports/photo.jpg', {
       mimeType: 'image/jpeg',
       dialogTitle: 'photo.jpg',
     });

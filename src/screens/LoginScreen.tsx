@@ -281,8 +281,8 @@ export default function LoginScreen({ onLogin, isAddMode = false, onCancel }: Lo
       const payload = parseQrLoginPayload(data);
       if (!payload) {
         setNotice({
-          title: t('login.mobile.notice_bad_qr', "That code isn't a Bulwark sign-in code"),
-          detail: t('login.mobile.notice_bad_qr_detail', 'Open Bulwark on the web, then Settings → Security → Link device to show one.'),
+          title: t('login.mobile.notice_bad_qr', "That code isn't a Utservio sign-in code"),
+          detail: t('login.mobile.notice_bad_qr_detail', 'Open Utservio Mail on the web, then Settings → Security → Link device to show one.'),
         });
         return;
       }

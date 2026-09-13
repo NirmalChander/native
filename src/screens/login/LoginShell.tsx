@@ -76,7 +76,7 @@ export default function LoginShell({
 
         {showFooter ? (
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Bulwark Mobile v{APP_VERSION}</Text>
+            <Text style={styles.footerText}>Utservio Mail v{APP_VERSION}</Text>
           </View>
         ) : null}
       </KeyboardAvoidingView>

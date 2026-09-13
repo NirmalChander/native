@@ -122,10 +122,10 @@ export function describeLoginError(err: unknown, context: LoginErrorContext = {}
     };
   }
 
-  if (lower.includes('no bulwark webmail or sign-in service')) {
+  if (lower.includes('no utservio webmail or sign-in service') || lower.includes('no bulwark webmail or sign-in service')) {
     return {
       title: t('login.mobile.err_no_webmail_title', 'No sign-in page at {host}', { host }),
-      detail: t('login.mobile.err_no_webmail_detail', 'This server has no Bulwark webmail and no OAuth sign-in. Use a password (or an app password) instead.'),
+      detail: t('login.mobile.err_no_webmail_detail', 'This server has no Utservio webmail and no OAuth sign-in. Use a password (or an app password) instead.'),
     };
   }
 

@@ -4,10 +4,11 @@ import { usePendingSettingsTab } from '../pending-settings-tab';
 
 describe('parseDeepLink', () => {
   it('parses app-scheme mail links', () => {
+    expect(parseDeepLink('utserviomail://mail/message/M1')).toEqual({ kind: 'message', emailId: 'M1', accountId: undefined });
     expect(parseDeepLink('bulwarkmobile://mail/message/M1')).toEqual({ kind: 'message', emailId: 'M1', accountId: undefined });
-    expect(parseDeepLink('bulwarkmobile://mail/thread/T1?account=acc')).toEqual({ kind: 'thread', threadId: 'T1', accountId: 'acc' });
-    expect(parseDeepLink('bulwarkmobile://mail/folder/inbox')).toEqual({ kind: 'folder', ref: 'inbox', accountId: undefined });
-    expect(parseDeepLink('bulwarkmobile://mail')).toEqual({ kind: 'folder', ref: 'inbox', accountId: undefined });
+    expect(parseDeepLink('utserviomail://mail/thread/T1?account=acc')).toEqual({ kind: 'thread', threadId: 'T1', accountId: 'acc' });
+    expect(parseDeepLink('utserviomail://mail/folder/inbox')).toEqual({ kind: 'folder', ref: 'inbox', accountId: undefined });
+    expect(parseDeepLink('utserviomail://mail')).toEqual({ kind: 'folder', ref: 'inbox', accountId: undefined });
   });
 
   it('parses webmail https permalinks, ignoring host and locale prefix', () => {

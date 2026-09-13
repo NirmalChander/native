@@ -58,7 +58,7 @@ function safeAttachmentName(name: string | undefined, type: string | undefined):
 // Every temp file we hand to another app lives in one sub-directory of the
 // cache so the sweep below only ever touches our own files.
 function exportsDir(): Directory {
-  return new Directory(Paths.cache, 'bulwark-exports');
+  return new Directory(Paths.cache, 'utservio-exports');
 }
 
 function ensureDir(dir: Directory): void {

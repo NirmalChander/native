@@ -8,7 +8,7 @@ import { parseMailtoUrl } from '../lib/mailto';
 import type { RootStackParamList } from './types';
 import { setPendingSettingsTab } from './pending-settings-tab';
 
-export const APP_SCHEME = 'bulwarkmobile';
+export const APP_SCHEME = 'utserviomail';
 
 export type DeepLink =
   | { kind: 'message'; emailId: string; accountId?: string }

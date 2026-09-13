@@ -6,8 +6,8 @@ import { useColors, useResolvedTheme } from '../../theme/colors';
 import { useLocaleStore } from '../../stores/locale-store';
 
 // The white mark disappears on the light palette, so pick per theme.
-const LOGO_LIGHT = require('../../../assets/logos/Bulwark Logo Dark.png');
-const LOGO_DARK = require('../../../assets/logos/Bulwark Logo White.png');
+const LOGO_LIGHT = require('../../../assets/logos/utservio-logo.png');
+const LOGO_DARK = require('../../../assets/logos/utservio-logo.png');
 
 export type SigningInPhase = 'browser' | 'connecting' | 'pairing';
 
