@@ -140,26 +140,43 @@ function MainTabsNavigator({ navigation }: NativeStackScreenProps<RootStackParam
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: c.text,
-        tabBarInactiveTintColor: c.textSecondary,
+        tabBarActiveTintColor: c.primary,
+        tabBarInactiveTintColor: c.textMuted,
         tabBarStyle: {
           backgroundColor: c.background,
           borderTopColor: c.border,
           borderTopWidth: 1,
-          elevation: 0,
-          shadowOpacity: 0,
-          shadowColor: 'transparent',
+          height: 62,
+          paddingTop: 6,
+          paddingBottom: 8,
+          elevation: 6,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.15,
+          shadowRadius: 4,
         },
         tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '500',
+          fontSize: 11,
+          fontWeight: '600',
+          marginTop: 2,
         },
       }}
     >
       <Tab.Screen
         name="Mail"
         options={{
-          tabBarIcon: ({ color, size }) => <Mail size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{
+              backgroundColor: focused ? 'rgba(59, 130, 246, 0.16)' : 'transparent',
+              paddingHorizontal: 16,
+              paddingVertical: 3,
+              borderRadius: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Mail size={20} color={focused ? c.primary : c.textMuted} />
+            </View>
+          ),
           tabBarBadge: inboxUnreadCount > 0 ? (inboxUnreadCount > 99 ? '99+' : inboxUnreadCount) : undefined,
           tabBarBadgeStyle: {
             backgroundColor: c.error,
@@ -192,7 +209,18 @@ function MainTabsNavigator({ navigation }: NativeStackScreenProps<RootStackParam
         name="Calendar"
         component={CalendarScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{
+              backgroundColor: focused ? 'rgba(59, 130, 246, 0.16)' : 'transparent',
+              paddingHorizontal: 16,
+              paddingVertical: 3,
+              borderRadius: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Calendar size={20} color={focused ? c.primary : c.textMuted} />
+            </View>
+          ),
           tabBarItemStyle: hasCalendar ? undefined : disabledTabStyle,
           tabBarAccessibilityLabel: hasCalendar ? 'Calendar' : 'Calendar (unavailable)',
         }}
@@ -206,7 +234,18 @@ function MainTabsNavigator({ navigation }: NativeStackScreenProps<RootStackParam
         name="Contacts"
         component={ContactsScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <BookUser size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{
+              backgroundColor: focused ? 'rgba(59, 130, 246, 0.16)' : 'transparent',
+              paddingHorizontal: 16,
+              paddingVertical: 3,
+              borderRadius: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <BookUser size={20} color={focused ? c.primary : c.textMuted} />
+            </View>
+          ),
           tabBarItemStyle: hasContacts ? undefined : disabledTabStyle,
           tabBarAccessibilityLabel: hasContacts ? 'Contacts' : 'Contacts (unavailable)',
         }}
@@ -220,7 +259,18 @@ function MainTabsNavigator({ navigation }: NativeStackScreenProps<RootStackParam
         name="Files"
         component={FilesScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <HardDrive size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{
+              backgroundColor: focused ? 'rgba(59, 130, 246, 0.16)' : 'transparent',
+              paddingHorizontal: 16,
+              paddingVertical: 3,
+              borderRadius: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <HardDrive size={20} color={focused ? c.primary : c.textMuted} />
+            </View>
+          ),
           tabBarItemStyle: hasFiles ? undefined : disabledTabStyle,
           tabBarAccessibilityLabel: hasFiles ? 'Files' : 'Files (unavailable)',
         }}
@@ -233,7 +283,18 @@ function MainTabsNavigator({ navigation }: NativeStackScreenProps<RootStackParam
       <Tab.Screen
         name="Settings"
         options={{
-          tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{
+              backgroundColor: focused ? 'rgba(59, 130, 246, 0.16)' : 'transparent',
+              paddingHorizontal: 16,
+              paddingVertical: 3,
+              borderRadius: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Settings size={20} color={focused ? c.primary : c.textMuted} />
+            </View>
+          ),
         }}
       >
         {() => <SettingsScreen onLogout={logout} />}

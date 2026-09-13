@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View, Text, StyleSheet, Pressable, ScrollView, Modal, TextInput, Alert,
-  Animated, Dimensions, Easing, ActivityIndicator,
+  Animated, Dimensions, Easing, ActivityIndicator, Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -752,11 +752,26 @@ export default function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) 
 
       <Animated.View style={[styles.drawer, { transform: [{ translateX: slideX }] }]}>
         <SafeAreaView style={styles.drawerSafe} edges={['top', 'bottom', 'left']}>
-          {/* Header: close + account switcher */}
-          <View style={styles.header}>
-            <Pressable onPress={onClose} style={styles.headerClose} hitSlop={8}>
-              <X size={20} color={c.text} />
+          {/* Brand Header with Logo */}
+          <View style={styles.brandHeader}>
+            <View style={styles.brandLogoRow}>
+              <Image
+                source={require('../../assets/logos/utservio-logo.png')}
+                style={styles.brandLogo}
+                resizeMode="contain"
+              />
+              <View style={styles.brandTextCol}>
+                <Text style={styles.brandTitle}>Utservio Mail</Text>
+                <Text style={styles.brandSubtitle}>Secure Webmail</Text>
+              </View>
+            </View>
+            <Pressable onPress={onClose} style={styles.headerClose} hitSlop={8} accessibilityLabel="Close menu">
+              <X size={20} color={c.textMuted} />
             </Pressable>
+          </View>
+
+          {/* Account switcher row */}
+          <View style={styles.accountCardContainer}>
             <Pressable
               onPress={() => setAccountMenuOpen((v) => !v)}
               style={({ pressed }) => [styles.account, pressed && styles.accountPressed]}
@@ -1154,13 +1169,41 @@ function makeStyles(c: ThemePalette) {
   },
   drawerSafe: { flex: 1 },
 
-  // Header
-  header: {
+  // Brand Header
+  brandHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  brandLogoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  brandLogo: {
+    width: 30,
+    height: 30,
+  },
+  brandTextCol: {
+    flexDirection: 'column',
+  },
+  brandTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: c.text,
+    letterSpacing: -0.2,
+  },
+  brandSubtitle: {
+    fontSize: 11,
+    color: c.textMuted,
+    marginTop: 1,
+  },
+  accountCardContainer: {
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.sm,
+    paddingBottom: spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: c.border,
   },
@@ -1170,13 +1213,14 @@ function makeStyles(c: ThemePalette) {
     borderRadius: radius.sm,
   },
   account: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
-    borderRadius: radius.sm,
+    paddingVertical: 8,
+    borderRadius: radius.md,
+    backgroundColor: c.surface,
+    marginBottom: spacing.xs,
   },
   accountPressed: { backgroundColor: c.surfaceHover },
   accountChevronOpen: { transform: [{ rotate: '180deg' }] },

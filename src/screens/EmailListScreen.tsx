@@ -89,6 +89,7 @@ const EmailRow = React.memo(function EmailRow({
   forwarded,
   onPress,
   onLongPress,
+  onToggleStar,
   selected,
   selectionMode,
 }: {
@@ -104,6 +105,7 @@ const EmailRow = React.memo(function EmailRow({
   forwarded: boolean;
   onPress: (id: string) => void;
   onLongPress: (id: string) => void;
+  onToggleStar?: (id: string, currentStarred: boolean) => void;
   selected: boolean;
   selectionMode: boolean;
 }) {
@@ -139,7 +141,8 @@ const EmailRow = React.memo(function EmailRow({
     <Pressable
       style={({ pressed }) => [
         styles.emailRow,
-        { paddingVertical: density.rowPaddingVertical },
+        unread && styles.emailRowUnread,
+        { paddingVertical: density.rowPaddingVertical + 2 },
         pressed && styles.emailRowPressed,
         selected && styles.emailRowSelected,
       ]}
@@ -151,16 +154,16 @@ const EmailRow = React.memo(function EmailRow({
         <View
           style={[
             styles.unreadDot,
-            { top: density.rowPaddingVertical + (density.showAvatar ? componentSizes.avatarMd : UNREAD_DOT_TEXT_LINE) / 2 - 4 },
+            { top: density.rowPaddingVertical + (density.showAvatar ? componentSizes.avatarMd : UNREAD_DOT_TEXT_LINE) / 2 },
           ]}
         />
       )}
       {selectionMode && (
         <View style={styles.rowCheckboxWrap}>
           {selected ? (
-            <SquareCheck size={16} color={c.primary} />
+            <SquareCheck size={18} color={c.primary} />
           ) : (
-            <Square size={16} color={c.textMuted} />
+            <Square size={18} color={c.textMuted} />
           )}
         </View>
       )}
@@ -178,56 +181,73 @@ const EmailRow = React.memo(function EmailRow({
         {/* Row 1: Sender + indicators + time */}
         <View style={styles.emailHeaderRow}>
           <View style={styles.senderRow}>
-            <Text style={[styles.emailFrom, dyn.bodyMedium, unread && styles.textUnread]} numberOfLines={1}>
+            <Text style={[styles.emailFrom, dyn.bodyMedium, unread ? styles.emailFromUnread : styles.emailFromRead]} numberOfLines={1}>
               {senderName}
             </Text>
-            {pinned && (
-              <Pin size={componentSizes.statusIcon} color={c.primary} fill={c.primary} />
-            )}
-            {starred && (
-              <Star size={componentSizes.statusIcon} color={c.starred} fill={c.starred} />
-            )}
-            {answered && (
-              <Reply size={componentSizes.statusIcon} color={c.textMuted} />
-            )}
-            {forwarded && (
-              <Forward size={componentSizes.statusIcon} color={c.textMuted} />
-            )}
-            {item.hasAttachment && (
-              <Paperclip size={componentSizes.statusIcon} color={c.textMuted} />
-            )}
-          </View>
-          <View style={styles.timeAndTag}>
             {threadCount > 1 && (
               <View style={styles.threadBadge}>
                 <Text style={styles.threadBadgeText}>{threadCount}</Text>
               </View>
             )}
-            <Text style={[styles.emailDate, dyn.caption]}>{formatListDate(item.receivedAt, { dateFormat, timeFormat, locale, t: tr })}</Text>
+            {pinned && (
+              <Pin size={12} color={c.primary} fill={c.primary} />
+            )}
+            {answered && (
+              <Reply size={12} color={c.textMuted} />
+            )}
+            {forwarded && (
+              <Forward size={12} color={c.textMuted} />
+            )}
+            {item.hasAttachment && (
+              <Paperclip size={12} color={c.textMuted} />
+            )}
           </View>
+          <Text style={[styles.emailDate, unread ? styles.emailDateUnread : styles.emailDateRead]}>
+            {formatListDate(item.receivedAt, { dateFormat, timeFormat, locale, t: tr })}
+          </Text>
         </View>
 
-        {/* Row 2: Subject + tag pills */}
+        {/* Row 2: Subject + inline star */}
         <View style={styles.subjectRow}>
-          <Text style={[styles.emailSubject, dyn.body, unread && styles.textBold]} numberOfLines={1}>
+          <Text style={[styles.emailSubject, unread ? styles.emailSubjectUnread : styles.emailSubjectRead]} numberOfLines={1}>
             {item.subject || '(no subject)'}
           </Text>
-          {tags.slice(0, 3).map((tag) => (
-            <View key={tag.id} style={[styles.tagPill, { backgroundColor: tag.bg }]}>
-              <View style={[styles.tagDot, { backgroundColor: tag.dot }]} />
-              <Text style={[styles.tagText, { color: tag.text }]} numberOfLines={1}>{tag.label}</Text>
-            </View>
-          ))}
-          {tags.length > 3 && (
-            <Text style={[styles.tagText, { color: c.textMuted }]}>+{tags.length - 3}</Text>
-          )}
+          <Pressable
+            onPress={(e) => {
+              e.stopPropagation?.();
+              onToggleStar?.(item.id, starred);
+            }}
+            hitSlop={8}
+            style={styles.starTouchArea}
+          >
+            <Star
+              size={18}
+              color={starred ? c.starred : 'rgba(255, 255, 255, 0.2)'}
+              fill={starred ? c.starred : 'transparent'}
+            />
+          </Pressable>
         </View>
 
         {/* Row 3: Preview - hidden in compact density modes regardless of toggle */}
         {showPreview && density.showPreview && (
-          <Text style={[styles.emailPreview, dyn.body]} numberOfLines={2}>
+          <Text style={[styles.emailPreview, dyn.body]} numberOfLines={1}>
             {item.preview}
           </Text>
+        )}
+
+        {/* Tags pills */}
+        {tags.length > 0 && (
+          <View style={styles.tagsRow}>
+            {tags.slice(0, 3).map((tag) => (
+              <View key={tag.id} style={[styles.tagPill, { backgroundColor: tag.bg }]}>
+                <View style={[styles.tagDot, { backgroundColor: tag.dot }]} />
+                <Text style={[styles.tagText, { color: tag.text }]} numberOfLines={1}>{tag.label}</Text>
+              </View>
+            ))}
+            {tags.length > 3 && (
+              <Text style={[styles.tagText, { color: c.textMuted }]}>+{tags.length - 3}</Text>
+            )}
+          </View>
         )}
       </View>
     </Pressable>
@@ -327,6 +347,30 @@ export default function EmailListScreen({ onEmailPress, onComposePress }: EmailL
     () => collapseThreads(emails, disableThreading),
     [emails, disableThreading],
   );
+
+  // Modern category tabs / quick filter state (All, Unread, Starred, Important, Attachments)
+  const [quickCategory, setQuickCategory] = React.useState<'all' | 'unread' | 'starred' | 'important' | 'attachments'>('all');
+
+  const filteredVisibleEmails = React.useMemo(() => {
+    switch (quickCategory) {
+      case 'unread':
+        return visibleEmails.filter((e) => isUnread(e));
+      case 'starred':
+        return visibleEmails.filter((e) => isStarred(e));
+      case 'important':
+        return visibleEmails.filter((e) => isPinned(e) || !!e.keywords?.$flagged || !!e.keywords?.$important);
+      case 'attachments':
+        return visibleEmails.filter((e) => e.hasAttachment);
+      case 'all':
+      default:
+        return visibleEmails;
+    }
+  }, [visibleEmails, quickCategory]);
+
+  const unreadEmailsCount = React.useMemo(() => {
+    return visibleEmails.filter((e) => isUnread(e)).length;
+  }, [visibleEmails]);
+
   const threadGroups = React.useMemo(
     () => groupByThread(emails, disableThreading),
     [emails, disableThreading],
@@ -457,7 +501,7 @@ export default function EmailListScreen({ onEmailPress, onComposePress }: EmailL
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
   const selectionMode = selectedIds.size > 0;
   const allSelected =
-    visibleEmails.length > 0 && visibleEmails.every((e) => selectedIds.has(e.id));
+    filteredVisibleEmails.length > 0 && filteredVisibleEmails.every((e) => selectedIds.has(e.id));
 
   // Refs so row press handlers stay referentially stable across renders.
   // FlatList rows then skip re-render when the parent re-renders for unrelated
@@ -596,6 +640,13 @@ export default function EmailListScreen({ onEmailPress, onComposePress }: EmailL
     markRead, markUnread, toggleStar, togglePin, t,
   ]);
 
+  const handleToggleStar = React.useCallback(
+    (id: string, currentStarred: boolean) => {
+      void toggleStar(id, !currentStarred);
+    },
+    [toggleStar],
+  );
+
   const renderEmailRow = React.useCallback(
     ({ item }: { item: Email }) => {
       const key = threadKeyOf(item, disableThreading);
@@ -622,12 +673,13 @@ export default function EmailListScreen({ onEmailPress, onComposePress }: EmailL
             selectionMode={selectionMode}
             onPress={handleRowPress}
             onLongPress={toggleSelect}
+            onToggleStar={handleToggleStar}
           />
         </SwipeableRow>
       );
     },
     [
-      selectedIds, selectionMode, handleRowPress, toggleSelect, swipeLeftAction, swipeRightAction,
+      selectedIds, selectionMode, handleRowPress, toggleSelect, handleToggleStar, swipeLeftAction, swipeRightAction,
       swipeMode, handleSwipeAction, disableThreading, rowFlags, rowTagIds, threadCountFor,
       showPreview, showRecipient, keywordDefs, inJunk, showAvatarsInJunk,
     ],
@@ -639,11 +691,11 @@ export default function EmailListScreen({ onEmailPress, onComposePress }: EmailL
 
   const toggleSelectAllVisible = React.useCallback(() => {
     setSelectedIds((prev) => {
-      const allCurrent = visibleEmails.length > 0 && visibleEmails.every((e) => prev.has(e.id));
+      const allCurrent = filteredVisibleEmails.length > 0 && filteredVisibleEmails.every((e) => prev.has(e.id));
       if (allCurrent) return new Set();
-      return new Set(visibleEmails.map((e) => e.id));
+      return new Set(filteredVisibleEmails.map((e) => e.id));
     });
-  }, [visibleEmails]);
+  }, [filteredVisibleEmails]);
 
   // Clear selection when mailbox changes
   React.useEffect(() => {
@@ -890,132 +942,81 @@ export default function EmailListScreen({ onEmailPress, onComposePress }: EmailL
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
+      {/* Header / Search Bar */}
       {selectionMode ? (
-        <View style={styles.header}>
-          <Pressable onPress={clearSelection} style={styles.headerButton}>
+        <View style={styles.selectionBar}>
+          <Pressable onPress={clearSelection} style={styles.headerButton} hitSlop={8}>
             <X size={20} color={c.text} />
           </Pressable>
-          <Text style={styles.headerTitle}>{selectedIds.size} selected</Text>
-          <Pressable
-            onPress={() => { void handleBulkStar(); }}
-            style={styles.headerButton}
-            hitSlop={6}
-          >
+          <Text style={styles.selectionTitle}>{selectedIds.size} selected</Text>
+          <View style={{ flex: 1 }} />
+          <Pressable onPress={toggleSelectAllVisible} style={styles.headerButton} hitSlop={8}>
+            {allSelected ? (
+              <SquareCheck size={20} color={c.primary} />
+            ) : (
+              <Square size={20} color={c.textSecondary} />
+            )}
+          </Pressable>
+          <Pressable onPress={() => { void handleBulkStar(); }} style={styles.headerButton} hitSlop={8}>
             <Star
               size={20}
-              color={allSelectedAreStarred ? c.starred : c.text}
+              color={allSelectedAreStarred ? c.starred : c.textSecondary}
               fill={allSelectedAreStarred ? c.starred : 'transparent'}
             />
           </Pressable>
-          <Pressable
-            onPress={() => { void handleBulkMarkReadToggle(); }}
-            style={styles.headerButton}
-            hitSlop={6}
-          >
+          <Pressable onPress={() => { void handleBulkMarkReadToggle(); }} style={styles.headerButton} hitSlop={8}>
             {allSelectedAreRead ? (
-              <MailIcon size={20} color={c.text} />
+              <MailIcon size={20} color={c.textSecondary} />
             ) : (
-              <MailOpen size={20} color={c.text} />
+              <MailOpen size={20} color={c.textSecondary} />
             )}
           </Pressable>
-          <Pressable
-            onPress={() => setTagSheetOpen(true)}
-            style={styles.headerButton}
-            hitSlop={6}
-          >
-            <Tag size={20} color={c.text} />
+          <Pressable onPress={() => setTagSheetOpen(true)} style={styles.headerButton} hitSlop={8}>
+            <Tag size={20} color={c.textSecondary} />
           </Pressable>
-          <Pressable
-            onPress={() => setBatchMoveOpen(true)}
-            style={styles.headerButton}
-            hitSlop={6}
-          >
-            <FolderInput size={20} color={c.text} />
+          <Pressable onPress={() => setBatchMoveOpen(true)} style={styles.headerButton} hitSlop={8}>
+            <FolderInput size={20} color={c.textSecondary} />
           </Pressable>
           {canSpamSelection && (
             <Pressable
               onPress={() => { void handleBulkSpam(); }}
               style={styles.headerButton}
-              hitSlop={6}
+              hitSlop={8}
               accessibilityLabel={inJunk ? t('context_menu.not_spam', 'Not spam') : t('context_menu.mark_as_spam', 'Report spam')}
             >
               {inJunk ? (
-                <ShieldCheck size={20} color={c.text} />
+                <ShieldCheck size={20} color={c.textSecondary} />
               ) : (
-                <ShieldAlert size={20} color={c.text} />
+                <ShieldAlert size={20} color={c.textSecondary} />
               )}
             </Pressable>
           )}
           {canArchiveSelection && (
-            <Pressable
-              onPress={() => { void handleBulkArchive(); }}
-              style={styles.headerButton}
-              hitSlop={6}
-            >
-              <Archive size={20} color={c.text} />
+            <Pressable onPress={() => { void handleBulkArchive(); }} style={styles.headerButton} hitSlop={8}>
+              <Archive size={20} color={c.textSecondary} />
             </Pressable>
           )}
-          <Pressable
-            onPress={() => { void handleBulkDelete(); }}
-            style={styles.headerButton}
-            hitSlop={6}
-          >
-            <Trash2 size={20} color={c.text} />
+          <Pressable onPress={() => { void handleBulkDelete(); }} style={styles.headerButton} hitSlop={8}>
+            <Trash2 size={20} color={c.error} />
           </Pressable>
         </View>
       ) : (
-        <View style={styles.header}>
-          <Pressable onPress={() => setDrawerOpen(true)} style={styles.headerButton}>
-            <Menu size={20} color={c.textMuted} />
-          </Pressable>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {headerTitle}
-          </Text>
-          <View style={{ flex: 1 }} />
+        <View style={styles.searchPillContainer}>
           <Pressable
-            onPress={() => { void handleImport(); }}
-            style={styles.headerButton}
-            disabled={importing}
-            hitSlop={6}
+            onPress={() => setDrawerOpen(true)}
+            style={styles.searchPillMenuButton}
+            hitSlop={8}
+            accessibilityLabel="Menu"
           >
-            {importing ? (
-              <ActivityIndicator size="small" color={c.textMuted} />
-            ) : (
-              <Import size={20} color={c.textMuted} />
-            )}
+            <Menu size={22} color={c.textSecondary} />
           </Pressable>
-          <Image
-            source={require('../../assets/logos/utservio-logo.png')}
-            style={styles.headerLogo}
-            resizeMode="contain"
-          />
-        </View>
-      )}
-
-      {/* Search bar (always visible) */}
-      <View style={styles.searchBar}>
-        <Pressable style={styles.checkboxButton} onPress={toggleSelectAllVisible} hitSlop={6}>
-          {allSelected ? (
-            <SquareCheck size={18} color={c.primary} />
-          ) : selectionMode ? (
-            <View style={styles.checkboxIndeterminate}>
-              <Minus size={14} color={c.background} />
-            </View>
-          ) : (
-            <Square size={18} color={c.textMuted} />
-          )}
-        </Pressable>
-        <View style={styles.searchInputArea}>
-          <Search size={16} color={c.textMuted} />
           <TextInput
-            style={styles.searchInput}
-            placeholder={t('email_list.search_placeholder', 'Search mail...')}
+            style={styles.searchPillInput}
+            placeholder={t('email_list.search_placeholder', 'Search in mail...')}
             placeholderTextColor={c.textMuted}
             value={searchInput}
             onChangeText={setSearchInput}
             onFocus={() => setSearchFocused(true)}
-            // Delay so a tap on a recent-search row lands before the list hides.
             onBlur={() => { setTimeout(() => setSearchFocused(false), 150); }}
             onSubmitEditing={() => submitSearch(searchInput)}
             autoCapitalize="none"
@@ -1028,35 +1029,114 @@ export default function EmailListScreen({ onEmailPress, onComposePress }: EmailL
               hitSlop={8}
               style={styles.searchClearButton}
             >
-              <X size={14} color={c.textMuted} />
+              <X size={16} color={c.textMuted} />
             </Pressable>
           )}
+          <Pressable
+            style={styles.searchPillIconButton}
+            onPress={() => setSortAscending(!sortAscending)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={sortAscending ? 'Sorted oldest first' : 'Sorted newest first'}
+          >
+            {sortAscending ? (
+              <ArrowUpNarrowWide size={18} color={c.primary} />
+            ) : (
+              <ArrowDownWideNarrow size={18} color={c.textSecondary} />
+            )}
+          </Pressable>
+          <Pressable
+            style={[styles.searchPillIconButton, activeFilterCount > 0 && styles.filterButtonActive]}
+            onPress={() => setFilterMenuOpen(true)}
+            hitSlop={8}
+          >
+            <Filter size={18} color={activeFilterCount > 0 ? c.primary : c.textSecondary} />
+            {activeFilterCount > 0 && (
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+              </View>
+            )}
+          </Pressable>
+          <Pressable
+            onPress={() => setDrawerOpen(true)}
+            style={styles.searchPillLogoButton}
+            hitSlop={8}
+          >
+            <Image
+              source={require('../../assets/logos/utservio-logo.png')}
+              style={styles.searchPillLogo}
+              resizeMode="contain"
+            />
+          </Pressable>
         </View>
-        <Pressable
-          style={styles.filterButton}
-          onPress={() => setSortAscending(!sortAscending)}
-          accessibilityRole="button"
-          accessibilityLabel={sortAscending ? 'Sorted oldest first' : 'Sorted newest first'}
-          accessibilityHint="Reverses the mail sort order"
+      )}
+
+      {/* Modern Desktop-Style Category Tabs / Quick Filter Strip */}
+      {!selectionMode && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryTabsContainer}
+          style={styles.categoryTabsScroll}
         >
-          {sortAscending ? (
-            <ArrowUpNarrowWide size={18} color={c.primary} />
-          ) : (
-            <ArrowDownWideNarrow size={18} color={c.textMuted} />
-          )}
-        </Pressable>
-        <Pressable
-          style={[styles.filterButton, activeFilterCount > 0 && styles.filterButtonActive]}
-          onPress={() => setFilterMenuOpen(true)}
-        >
-          <Filter size={18} color={activeFilterCount > 0 ? c.primary : c.textMuted} />
-          {activeFilterCount > 0 && (
-            <View style={styles.filterBadge}>
-              <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
-            </View>
-          )}
-        </Pressable>
-      </View>
+          <Pressable
+            style={[styles.categoryTab, quickCategory === 'all' && styles.categoryTabActive]}
+            onPress={() => setQuickCategory('all')}
+          >
+            <MailIcon size={14} color={quickCategory === 'all' ? c.primary : c.textMuted} />
+            <Text style={[styles.categoryTabText, quickCategory === 'all' && styles.categoryTabTextActive]}>
+              {headerTitle || 'All'}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={[styles.categoryTab, quickCategory === 'unread' && styles.categoryTabActive]}
+            onPress={() => setQuickCategory(quickCategory === 'unread' ? 'all' : 'unread')}
+          >
+            <View style={[styles.categoryTabDot, { backgroundColor: c.unread }]} />
+            <Text style={[styles.categoryTabText, quickCategory === 'unread' && styles.categoryTabTextActive]}>
+              Unread
+            </Text>
+            {unreadEmailsCount > 0 && (
+              <View style={[styles.categoryTabBadge, quickCategory === 'unread' && styles.categoryTabBadgeActive]}>
+                <Text style={[styles.categoryTabBadgeText, quickCategory === 'unread' && styles.categoryTabBadgeTextActive]}>
+                  {unreadEmailsCount}
+                </Text>
+              </View>
+            )}
+          </Pressable>
+
+          <Pressable
+            style={[styles.categoryTab, quickCategory === 'starred' && styles.categoryTabActive]}
+            onPress={() => setQuickCategory(quickCategory === 'starred' ? 'all' : 'starred')}
+          >
+            <Star size={14} color={c.starred} fill={quickCategory === 'starred' ? c.starred : 'transparent'} />
+            <Text style={[styles.categoryTabText, quickCategory === 'starred' && styles.categoryTabTextActive]}>
+              Starred
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={[styles.categoryTab, quickCategory === 'important' && styles.categoryTabActive]}
+            onPress={() => setQuickCategory(quickCategory === 'important' ? 'all' : 'important')}
+          >
+            <Pin size={14} color={quickCategory === 'important' ? c.primary : c.textMuted} />
+            <Text style={[styles.categoryTabText, quickCategory === 'important' && styles.categoryTabTextActive]}>
+              Important
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={[styles.categoryTab, quickCategory === 'attachments' && styles.categoryTabActive]}
+            onPress={() => setQuickCategory(quickCategory === 'attachments' ? 'all' : 'attachments')}
+          >
+            <Paperclip size={14} color={quickCategory === 'attachments' ? c.primary : c.textMuted} />
+            <Text style={[styles.categoryTabText, quickCategory === 'attachments' && styles.categoryTabTextActive]}>
+              Files
+            </Text>
+          </Pressable>
+        </ScrollView>
+      )}
 
       {searchFocused && ((!searchInput.trim() && recentSearches.length > 0) || contactSuggestions.length > 0) && (
         <View style={styles.recentSearches}>
@@ -1277,7 +1357,7 @@ export default function EmailListScreen({ onEmailPress, onComposePress }: EmailL
         </View>
       ) : (
         <FlatList
-          data={visibleEmails}
+          data={filteredVisibleEmails}
           keyExtractor={emailKeyExtractor}
           renderItem={renderEmailRow}
           ItemSeparatorComponent={EmailRowSeparator}
@@ -1289,12 +1369,15 @@ export default function EmailListScreen({ onEmailPress, onComposePress }: EmailL
         />
       )}
 
-      {/* Compose FAB - matches webmail mobile: PenSquare, h-14 w-14, rounded-full, shadow-lg */}
+      {/* Modern Extended Compose FAB */}
       <Pressable
         onPress={onComposePress}
         style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
+        accessibilityRole="button"
+        accessibilityLabel={t('sidebar.compose', 'Compose')}
       >
-        <SquarePen size={24} color={c.background} />
+        <SquarePen size={20} color="#ffffff" />
+        <Text style={styles.fabText}>{t('sidebar.compose', 'Compose')}</Text>
       </Pressable>
 
       <SidebarDrawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} />
@@ -1644,7 +1727,141 @@ function makeStyles(c: ThemePalette) {
   return StyleSheet.create({
   container: { flex: 1, backgroundColor: c.background },
 
-  // Header - matches web mobile-header: h-14 (56px), px-4, border-b
+  // Modern Floating Search Pill
+  searchPillContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: spacing.md,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+    height: 52,
+    backgroundColor: c.surface,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: c.border,
+    paddingHorizontal: spacing.sm,
+    gap: 4,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+  },
+  searchPillMenuButton: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.full,
+  },
+  searchPillInput: {
+    flex: 1,
+    ...typography.body,
+    color: c.text,
+    fontSize: 15,
+    paddingVertical: 0,
+    paddingHorizontal: 6,
+  },
+  searchPillIconButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.full,
+    position: 'relative',
+  },
+  searchPillLogoButton: {
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchPillLogo: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+  },
+
+  // Selection Bar
+  selectionBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    height: componentSizes.headerHeight,
+    borderBottomWidth: 1,
+    borderBottomColor: c.border,
+    gap: spacing.sm,
+    backgroundColor: c.surface,
+  },
+  selectionTitle: {
+    ...typography.bodySemibold,
+    fontSize: 16,
+    color: c.text,
+    marginLeft: spacing.xs,
+  },
+
+  // Modern Desktop-Style Category Tabs / Quick Filter Strip
+  categoryTabsScroll: {
+    maxHeight: 44,
+    marginBottom: spacing.xs,
+  },
+  categoryTabsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    gap: 8,
+    paddingVertical: 2,
+  },
+  categoryTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: c.surface,
+    borderWidth: 1,
+    borderColor: c.border,
+  },
+  categoryTabActive: {
+    backgroundColor: 'rgba(59, 130, 246, 0.16)',
+    borderColor: c.primary,
+  },
+  categoryTabText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: c.textSecondary,
+  },
+  categoryTabTextActive: {
+    color: c.primaryLight,
+    fontWeight: '600',
+  },
+  categoryTabDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+  },
+  categoryTabBadge: {
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: c.muted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  categoryTabBadgeActive: {
+    backgroundColor: c.primary,
+  },
+  categoryTabBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: c.textMuted,
+  },
+  categoryTabBadgeTextActive: {
+    color: '#ffffff',
+  },
+
+  // Legacy header & searchBar fallback references
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1655,17 +1872,15 @@ function makeStyles(c: ThemePalette) {
     gap: spacing.md,
   },
   headerButton: {
-    width: componentSizes.buttonLg, height: componentSizes.buttonLg, // h-11 w-11 = 44px
+    width: componentSizes.buttonLg, height: componentSizes.buttonLg,
     alignItems: 'center', justifyContent: 'center',
     borderRadius: radius.full,
   },
-  headerTitle: { ...typography.h3, color: c.text, flexShrink: 1 }, // text-lg font-semibold
+  headerTitle: { ...typography.h3, color: c.text, flexShrink: 1 },
   headerLogo: {
     width: 28,
     height: 28,
   },
-
-  // Search - matches web search bar styling
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1683,7 +1898,7 @@ function makeStyles(c: ThemePalette) {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    height: componentSizes.inputHeight, // h-10 = 40px
+    height: componentSizes.inputHeight,
     backgroundColor: c.surface,
     borderRadius: radius.sm,
     borderWidth: 1,
@@ -1972,14 +2187,59 @@ function makeStyles(c: ThemePalette) {
   listContent: { paddingBottom: 100 },
   emailRow: {
     flexDirection: 'row',
-    paddingHorizontal: spacing.lg,      // px-4 = 16px
-    paddingVertical: spacing.md,        // py-3 = 12px (density-item-py)
-    gap: spacing.md,                    // gap-3 = 12px (density-item-gap)
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: c.border,   // border-b border-border
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
-  emailRowPressed: { backgroundColor: c.surface },
+  emailRowUnread: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  },
+  emailRowPressed: { backgroundColor: c.surfaceHover },
   emailRowSelected: { backgroundColor: c.selection },
+  emailFromUnread: {
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  emailFromRead: {
+    fontWeight: '500',
+    color: c.textSecondary,
+  },
+  emailDateUnread: {
+    ...typography.caption,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  emailDateRead: {
+    ...typography.caption,
+    fontWeight: '400',
+    color: c.textMuted,
+  },
+  emailSubjectUnread: {
+    ...typography.body,
+    fontWeight: '600',
+    color: '#f8fafc',
+    flex: 1,
+  },
+  emailSubjectRead: {
+    ...typography.body,
+    fontWeight: '400',
+    color: c.textSecondary,
+    flex: 1,
+  },
+  starTouchArea: {
+    paddingLeft: 8,
+    paddingVertical: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
   // Mirrors the webmail's unread indicator: an 8px filled circle at the row's
   // start edge, vertically centered (email-list-item.tsx, fill-unread). The
   // weight/color change alone is too subtle on some device fonts (#27).
@@ -2067,26 +2327,34 @@ function makeStyles(c: ThemePalette) {
   tagText: { ...typography.small, fontWeight: '500' },
   separator: { height: 0 }, // borders are on rows now
 
-  // Compose FAB - matches webmail: absolute bottom-4 right-4, h-14 w-14, rounded-full, bg-primary, shadow-lg
+  // Modern Extended Compose FAB
   fab: {
     position: 'absolute',
-    right: spacing.lg,               // right-4
-    bottom: spacing.lg,              // bottom-4
-    width: componentSizes.fab,       // 56px (h-14)
-    height: componentSizes.fab,      // 56px (w-14)
-    borderRadius: radius.full,       // rounded-full (circle)
-    backgroundColor: c.text,    // white - matches webmail mobile FAB
+    right: 20,
+    bottom: 24,
+    height: 52,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    backgroundColor: '#2563eb', // Utservio Blue
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 6,
+    gap: 10,
+    elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    zIndex: 40,                      // z-40
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    zIndex: 40,
+  },
+  fabText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#ffffff',
+    letterSpacing: 0.2,
   },
   fabPressed: {
-    opacity: 0.9,
+    transform: [{ scale: 0.96 }],
+    opacity: 0.92,
   },
   loadingContainer: {
     flex: 1,
